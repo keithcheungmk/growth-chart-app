@@ -21,6 +21,14 @@ test("default profiles include the two children and their seeded records", () =>
   assert.equal(state.profiles.yuyu.records[0].lengthHeightCm, 49.5);
 });
 
+test("older saved profiles infer birth week from birthday and due date", () => {
+  useMemoryStorage();
+  localStorage.setItem("HK_GROWTH_DATA_V2", JSON.stringify({ currentProfileId: "yuyu", profiles: { yuyu: { name: "榆榆", sex: "F", dateOfBirth: "2026-09-18", expectedDateOfConfinement: "2026-10-03", records: [] } } }));
+  const state = loadState();
+  assert.equal(state.profiles.yuyu.gestationalAgeWeeks, 37);
+  assert.equal(state.profiles.yuyu.gestationalAgeDays, 6);
+});
+
 test("records persist optional measurements and remain chronologically sorted", () => {
   useMemoryStorage();
   const state = loadState();

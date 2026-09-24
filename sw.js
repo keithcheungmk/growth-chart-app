@@ -1,4 +1,4 @@
-const CACHE_NAME = "hk-growth-chart-v4";
+const CACHE_NAME = "hk-growth-chart-v5";
 const APP_ASSETS = [
   "./",
   "./index.html",

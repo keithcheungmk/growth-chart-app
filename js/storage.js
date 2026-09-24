@@ -13,12 +13,16 @@ const DEFAULT_STATE = {
 function clone(value) { return JSON.parse(JSON.stringify(value)); }
 function makeId() { return globalThis.crypto?.randomUUID?.() || `record-${Date.now()}-${Math.random().toString(16).slice(2)}`; }
 function normalizeRecord(record) { return { id: String(record.id || makeId()), date: String(record.date || ""), lengthHeightCm: Number(record.lengthHeightCm), measurementMethod: record.measurementMethod === "recumbent" ? "recumbent" : "standing", weightKg: record.weightKg == null || record.weightKg === "" ? null : Number(record.weightKg), headCircumferenceCm: record.headCircumferenceCm == null || record.headCircumferenceCm === "" ? null : Number(record.headCircumferenceCm), notes: String(record.notes || "").slice(0, 500) }; }
+function inferGestationalAge(dateOfBirth, expectedDateOfConfinement) { if (!/^\d{4}-\d{2}-\d{2}$/.test(dateOfBirth) || !/^\d{4}-\d{2}-\d{2}$/.test(expectedDateOfConfinement)) return null; const birth = new Date(`${dateOfBirth}T00:00:00Z`); const edc = new Date(`${expectedDateOfConfinement}T00:00:00Z`); const daysBeforeDue = Math.round((edc - birth) / 86400000); const gestationalDays = 280 - daysBeforeDue; if (gestationalDays < 0 || gestationalDays > 320) return null; return { weeks: Math.floor(gestationalDays / 7), days: gestationalDays % 7 }; }
 function normalizeState(value) {
   if (!value || typeof value !== "object" || !value.profiles) throw new Error("備份格式不正確");
   const profiles = {};
   for (const [id, profile] of Object.entries(value.profiles)) {
     if (!profile || !profile.dateOfBirth) throw new Error("兒童資料不完整");
-    profiles[id] = { id, name: String(profile.name || id), sex: profile.sex === "F" ? "F" : "M", dateOfBirth: String(profile.dateOfBirth), expectedDateOfConfinement: profile.expectedDateOfConfinement ? String(profile.expectedDateOfConfinement) : null, gestationalAgeWeeks: profile.gestationalAgeWeeks ?? null, gestationalAgeDays: profile.gestationalAgeDays ?? null, records: Array.isArray(profile.records) ? profile.records.map(normalizeRecord) : [] };
+    const dateOfBirth = String(profile.dateOfBirth);
+    const expectedDateOfConfinement = profile.expectedDateOfConfinement ? String(profile.expectedDateOfConfinement) : null;
+    const inferred = inferGestationalAge(dateOfBirth, expectedDateOfConfinement);
+    profiles[id] = { id, name: String(profile.name || id), sex: profile.sex === "F" ? "F" : "M", dateOfBirth, expectedDateOfConfinement, gestationalAgeWeeks: profile.gestationalAgeWeeks ?? inferred?.weeks ?? null, gestationalAgeDays: profile.gestationalAgeDays ?? inferred?.days ?? null, records: Array.isArray(profile.records) ? profile.records.map(normalizeRecord) : [] };
   }
   if (!Object.keys(profiles).length) throw new Error("備份沒有兒童資料");
   return { schemaVersion: 2, referenceStandard: "HK2020", currentProfileId: profiles[value.currentProfileId] ? value.currentProfileId : Object.keys(profiles)[0], profiles };
