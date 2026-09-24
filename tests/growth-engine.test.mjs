@@ -23,6 +23,12 @@ test("same-centile trajectory starts at the latest measurement and reaches 216 m
   assert.ok(Math.abs(trajectory.points.at(-1).y - 177.95) < 0.2);
 });
 
+test("adult reference uses the exact calendar age of Kaka's latest record", () => {
+  const age = calculateAgeFromDates("2022-06-02", "2026-09-24");
+  const trajectory = generateSameCentileTrajectory({ measurement: 106, ageMonths: age.ageMonths }, HK2020_HEIGHT.M);
+  assert.ok(Math.abs(trajectory.points.at(-1).y - 174.97) < 0.2);
+});
+
 test("entry date automatically records exact calendar age for Kaka", () => {
   const age = calculateAgeFromDates("2022-06-02", "2026-09-24");
   assert.equal(age.label, "4歲 3個月 22日");

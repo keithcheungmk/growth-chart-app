@@ -60,7 +60,7 @@
         <article class="summary-card">
           <p>18歲同百分位參考</p>
           <strong id="adult-reference">—</strong>
-          <span>不是醫療預測</span>
+          <span id="adult-reference-note">按量度時精確年齡投影 · 非醫療預測</span>
         </article>
       </section>
 
@@ -71,6 +71,15 @@
             <h2 id="chart-title">沿目前百分位觀察</h2>
           </div>
           <span class="reference-badge" id="reference-badge">HK2020</span>
+        </div>
+        <div class="chart-toolbar">
+          <span class="focus-label">重點百分位線</span>
+          <div class="percentile-toggle" role="group" aria-label="選擇重點百分位線">
+            <button type="button" data-percentile="p25" aria-pressed="true">P25</button>
+            <button type="button" data-percentile="p50" aria-pressed="true">P50</button>
+            <button type="button" data-percentile="p75" aria-pressed="true">P75</button>
+          </div>
+          <span class="chart-hint">移動或點擊圖表查看厘米值</span>
         </div>
         <div class="chart-wrap"><canvas id="growth-chart" aria-label="兒童身高生長曲線"></canvas></div>
         <div class="chart-note">
