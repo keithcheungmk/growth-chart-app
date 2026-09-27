@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#176b87" />
+    <meta name="description" content="客人模式：輸入一次量度資料並查看 HK2020 成長曲線。" />
+    <link rel="icon" href="./icons/icon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./styles.css" />
+    <title>客人模式 · 成長曲線</title>
+  </head>
+  <body data-profile="guest">
+    <main class="shell guest-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Guest 模式</p>
+          <h1>成長曲線 <span>HK2020</span></h1>
+        </div>
+        <a class="secondary-button guest-back" href="./index.html">返回家庭記錄</a>
+      </header>
+
+      <section class="guest-intro">
+        <p class="eyebrow">客人快速記錄</p>
+        <h2>輸入一次量度資料</h2>
+        <p>提交後會即時顯示百分位及成長曲線。Guest 資料會同家庭記錄分開。</p>
+      </section>
+
+      <section class="guest-layout">
+        <form id="guest-form" class="guest-form" novalidate>
+          <label>小朋友稱呼／代號<input id="guest-name" name="name" maxlength="80" required placeholder="例如：小明" /></label>
+          <label>性別<select id="guest-sex" name="sex"><option value="M">男孩</option><option value="F">女孩</option></select></label>
+          <label>生日<input id="guest-dob" name="dateOfBirth" type="date" required /></label>
+          <label>量度日期<input id="guest-record-date" name="recordDate" type="date" required /></label>
+          <p id="guest-age-preview" class="age-preview" aria-live="polite">輸入生日及量度日期後，系統會自動計算年齡。</p>
+          <label>身高／身長（厘米）<input id="guest-height" name="lengthHeightCm" type="number" min="35" max="230" step="0.1" required /></label>
+          <label>量度方式<select id="guest-method" name="measurementMethod"><option value="standing">站立身高</option><option value="recumbent">躺臥身長</option></select></label>
+          <label>體重（公斤，可選）<input id="guest-weight" name="weightKg" type="number" min="0" max="250" step="0.01" /></label>
+          <label>頭圍（厘米，可選）<input id="guest-head" name="headCircumferenceCm" type="number" min="20" max="80" step="0.1" /></label>
+          <label>備註（可選）<textarea id="guest-notes" name="notes" rows="3" maxlength="500"></textarea></label>
+          <p id="guest-error" class="form-error" role="alert"></p>
+          <button class="primary-button" type="submit">顯示成長曲線</button>
+          <p class="guest-storage-note">目前 Guest 資料只儲存喺此瀏覽器。日後接上私人 API 後，先可以跨裝置同步。</p>
+        </form>
+
+        <section id="guest-result" class="guest-result" aria-live="polite" hidden>
+          <div class="section-heading">
+            <div><p class="eyebrow">即時結果</p><h2 id="guest-result-title">—</h2></div>
+            <span class="reference-badge">HK2020</span>
+          </div>
+          <div class="summary-grid guest-summary-grid">
+            <article class="summary-card highlight"><p>最新身高／身長</p><strong id="guest-height-result">—</strong><span id="guest-age-result">—</span></article>
+            <article class="summary-card"><p>目前百分位</p><strong id="guest-percentile-result">—</strong><span id="guest-zscore-result">—</span></article>
+          </div>
+          <div class="chart-wrap guest-chart-wrap"><canvas id="guest-chart" aria-label="客人兒童身高生長曲線"></canvas></div>
+          <p class="guest-disclaimer">只供記錄及趨勢觀察，不能代替醫療評估。</p>
+        </section>
+      </section>
+    </main>
+
+    <script src="./vendor/chart.umd.min.js"></script>
+    <script src="./js/guest-config.js"></script>
+    <script type="module" src="./js/guest.js"></script>
+  </body>
+</html>

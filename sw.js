@@ -1,7 +1,8 @@
-const CACHE_NAME = "hk-growth-chart-v5";
+const CACHE_NAME = "hk-growth-chart-v6";
 const APP_ASSETS = [
   "./",
   "./index.html",
+  "./guest.html",
   "./styles.css",
   "./manifest.json",
   "./icons/icon.svg",
@@ -9,7 +10,10 @@ const APP_ASSETS = [
   "./data/hk2020-height.js",
   "./js/growth-engine.js",
   "./js/storage.js",
-  "./js/app.js"
+  "./js/app.js",
+  "./js/guest.js",
+  "./js/guest-storage.js",
+  "./js/guest-config.js"
 ];
 
 self.addEventListener("install", (event) => {
