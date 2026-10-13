@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#176b87" />
-    <meta name="description" content="以香港2020生長參考記錄兒童身長及身高變化。" />
+    <meta name="description" content="以香港2020生長參考記錄兒童身長、身高及體重變化。" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <link rel="manifest" href="./manifest.json" />
@@ -30,7 +30,7 @@
 
       <section class="profile-switcher" aria-label="選擇孩子">
         <button class="profile-tab active" type="button" data-profile="kaka">卡卡<span>男孩</span></button>
-        <button class="profile-tab" type="button" data-profile="yuyu">榆榆<span>女孩</span></button>
+        <button class="profile-tab" type="button" data-profile="yuyu">曦悅<span>女孩</span></button>
       </section>
       <p class="profile-meta" id="profile-meta"></p>
 
@@ -49,7 +49,7 @@
 
       <section class="summary-grid" aria-label="最新記錄摘要">
         <article class="summary-card highlight">
-          <p>最新身高／身長</p>
+          <p id="latest-metric-label">最新身高／身長</p>
           <strong id="latest-height">—</strong>
           <span id="latest-age">—</span>
         </article>
@@ -59,7 +59,7 @@
           <span id="latest-zscore">—</span>
         </article>
         <article class="summary-card">
-          <p>18歲同百分位參考</p>
+          <p id="adult-reference-label">18歲同百分位參考</p>
           <strong id="adult-reference">—</strong>
           <span id="adult-reference-note">按量度時精確年齡投影 · 非醫療預測</span>
         </article>
@@ -68,10 +68,16 @@
       <section class="chart-card">
         <div class="section-heading">
           <div>
-            <p class="eyebrow">身長／身高</p>
+            <p class="eyebrow" id="chart-eyebrow">身長／身高</p>
             <h2 id="chart-title">沿目前百分位觀察</h2>
           </div>
-          <span class="reference-badge" id="reference-badge">HK2020</span>
+          <div class="chart-heading-actions">
+            <div class="metric-switcher" role="group" aria-label="圖表指標">
+              <button type="button" data-metric="height" class="active" aria-pressed="true">身高</button>
+              <button type="button" data-metric="weight" aria-pressed="false">體重</button>
+            </div>
+            <span class="reference-badge" id="reference-badge">HK2020</span>
+          </div>
         </div>
         <div class="chart-toolbar">
           <span class="focus-label">重點百分位線</span>
@@ -80,13 +86,13 @@
             <button type="button" data-percentile="p50" aria-pressed="true">P50</button>
             <button type="button" data-percentile="p75" aria-pressed="true">P75</button>
           </div>
-          <span class="chart-hint">移動或點擊圖表查看厘米值</span>
+          <span class="chart-hint" id="chart-hint">移動或點擊圖表查看厘米值</span>
         </div>
         <div class="chart-wrap"><canvas id="growth-chart" aria-label="兒童身高生長曲線"></canvas></div>
         <div class="chart-note">
           <span class="dot actual"></span>實測記錄
           <span class="dot projected"></span>同百分位參考軌跡
-          <span class="dot reference"></span>參考百分位線
+          <span class="dot reference"></span>香港九百分位線
         </div>
       </section>
 
@@ -102,22 +108,23 @@
       </section>
 
       <footer class="app-footer">
-        <p>資料只儲存在此裝置的瀏覽器。HK2020資料來源：香港中文大學香港生長研究。</p>
-        <p><a href="https://www.cuhk.edu.hk/proj/hkgrowth/growth_charts_tc.html" target="_blank" rel="noreferrer">查看官方生長圖表</a> · 不能代替醫療評估</p>
+        <p>本工具只供家庭記錄及趨勢觀察，不能代替醫療專業評估。資料只儲存在此裝置的瀏覽器。</p>
+        <p>HK2020資料來源：香港中文大學香港生長研究。 <a href="https://www.cuhk.edu.hk/proj/hkgrowth/growth_charts_tc.html" target="_blank" rel="noreferrer">查看官方生長圖表</a></p>
       </footer>
     </main>
 
     <dialog id="record-dialog" class="record-dialog">
       <form id="record-form" method="dialog">
         <div class="section-heading">
-          <div><p class="eyebrow">新增量度</p><h2>記錄身高／身長</h2></div>
+          <div><p class="eyebrow">新增量度</p><h2>記錄量度</h2></div>
           <button class="close-button" id="close-dialog" type="button" aria-label="關閉">×</button>
         </div>
         <label>量度日期<input id="record-date" name="date" type="date" required /></label>
         <p id="record-age-preview" class="age-preview" aria-live="polite"></p>
-        <label>身高／身長（厘米）<input id="record-height" name="height" type="number" min="35" max="230" step="0.1" required /></label>
+        <label>身高／身長（厘米）<input id="record-height" name="height" type="number" min="35" max="230" step="0.1" /></label>
         <label>量度方式<select id="record-method" name="method"><option value="standing">站立身高</option><option value="recumbent">躺臥身長</option></select></label>
-        <label>體重（公斤，可選）<input id="record-weight" name="weight" type="number" min="0" max="250" step="0.01" /></label>
+        <label>體重（公斤）<input id="record-weight" name="weight" type="number" min="0.5" max="150" step="0.01" /></label>
+        <p class="form-hint">請至少填寫身高或體重。</p>
         <label>頭圍（厘米，可選）<input id="record-head" name="headCircumference" type="number" min="20" max="80" step="0.1" /></label>
         <label>備註（可選）<textarea id="record-notes" name="notes" rows="3" maxlength="500"></textarea></label>
         <p id="form-error" class="form-error" role="alert"></p>

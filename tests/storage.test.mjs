@@ -16,6 +16,8 @@ test("default profiles include the two children and their seeded records", () =>
   const state = loadState();
   assert.equal(state.currentProfileId, "kaka");
   assert.equal(state.profiles.kaka.dateOfBirth, "2022-06-02");
+  assert.equal(state.profiles.yuyu.id, "yuyu");
+  assert.equal(state.profiles.yuyu.name, "曦悅");
   assert.equal(state.profiles.yuyu.expectedDateOfConfinement, "2026-10-03");
   assert.equal(state.profiles.kaka.records[0].lengthHeightCm, 106);
   assert.equal(state.profiles.yuyu.records[0].lengthHeightCm, 49.5);
@@ -39,6 +41,44 @@ test("records persist optional measurements and remain chronologically sorted", 
   assert.equal(restored.profiles.kaka.records[0].weightKg, 18.4);
   assert.equal(restored.profiles.kaka.records[0].headCircumferenceCm, 51.2);
   assert.equal(restored.profiles.kaka.records[0].notes, "放學後量度");
+});
+
+test("older saved sister display name 榆榆 is renamed to 曦悅 without changing profile id", () => {
+  useMemoryStorage();
+  localStorage.setItem("HK_GROWTH_DATA_V2", JSON.stringify({ currentProfileId: "yuyu", profiles: { yuyu: { name: "榆榆", sex: "F", dateOfBirth: "2026-09-18", expectedDateOfConfinement: "2026-10-03", records: [] } } }));
+  const state = loadState();
+  assert.equal(state.profiles.yuyu.id, "yuyu");
+  assert.equal(state.profiles.yuyu.name, "曦悅");
+});
+
+test("custom sister display names are preserved", () => {
+  useMemoryStorage();
+  localStorage.setItem("HK_GROWTH_DATA_V2", JSON.stringify({ currentProfileId: "yuyu", profiles: { yuyu: { name: "妹妹", sex: "F", dateOfBirth: "2026-09-18", records: [] } } }));
+  const state = loadState();
+  assert.equal(state.profiles.yuyu.name, "妹妹");
+});
+
+test("weight-only records are stored and height-only records still work", () => {
+  useMemoryStorage();
+  const state = loadState();
+  addRecord(state, "kaka", { date: "2026-10-01", weightKg: "16.8", measurementMethod: "standing" });
+  addRecord(state, "yuyu", { date: "2026-09-20", lengthHeightCm: 50.2, measurementMethod: "recumbent" });
+  saveState(state);
+  const restored = loadState();
+  const kakaWeight = restored.profiles.kaka.records.find((record) => record.date === "2026-10-01");
+  const yuyuHeight = restored.profiles.yuyu.records.find((record) => record.date === "2026-09-20");
+  assert.equal(kakaWeight.lengthHeightCm, null);
+  assert.equal(kakaWeight.weightKg, 16.8);
+  assert.equal(yuyuHeight.lengthHeightCm, 50.2);
+  assert.equal(yuyuHeight.weightKg, null);
+});
+
+test("records require at least one of height or weight and reject out-of-range weight", () => {
+  useMemoryStorage();
+  const state = loadState();
+  assert.throws(() => addRecord(state, "kaka", { date: "2026-10-01", measurementMethod: "standing" }), /至少填寫身高或體重/);
+  assert.throws(() => addRecord(state, "kaka", { date: "2026-10-01", weightKg: 0.2 }), /體重必須介乎0.5至150公斤/);
+  assert.throws(() => addRecord(state, "kaka", { date: "2026-10-01", lengthHeightCm: 20 }), /身高／身長必須介乎35至230厘米/);
 });
 
 test("records can be removed and imported after validation", () => {

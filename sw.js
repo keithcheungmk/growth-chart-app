@@ -1,4 +1,4 @@
-const CACHE_NAME = "hk-growth-chart-v6";
+const CACHE_NAME = "hk-growth-chart-v7";
 const APP_ASSETS = [
   "./",
   "./index.html",
@@ -8,6 +8,7 @@ const APP_ASSETS = [
   "./icons/icon.svg",
   "./vendor/chart.umd.min.js",
   "./data/hk2020-height.js",
+  "./data/hk2020-weight.js",
   "./js/growth-engine.js",
   "./js/storage.js",
   "./js/app.js",
