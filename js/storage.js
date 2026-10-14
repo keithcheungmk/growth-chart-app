@@ -6,7 +6,7 @@ const DEFAULT_STATE = {
   currentProfileId: "kaka",
   profiles: {
     kaka: { id: "kaka", name: "卡卡", sex: "M", dateOfBirth: "2022-06-02", expectedDateOfConfinement: null, gestationalAgeWeeks: null, gestationalAgeDays: null, records: [{ id: "seed-kaka", date: "2026-09-24", lengthHeightCm: 106, measurementMethod: "standing", weightKg: null, headCircumferenceCm: null, notes: "示範記錄" }] },
-    yuyu: { id: "yuyu", name: "曦悅", sex: "F", dateOfBirth: "2026-09-18", expectedDateOfConfinement: "2026-10-03", gestationalAgeWeeks: 37, gestationalAgeDays: 6, records: [{ id: "seed-yuyu", date: "2026-09-18", lengthHeightCm: 49.5, measurementMethod: "recumbent", weightKg: null, headCircumferenceCm: null, notes: "出生記錄" }] }
+    yuyu: { id: "yuyu", name: "浠榆", sex: "F", dateOfBirth: "2026-09-18", expectedDateOfConfinement: "2026-10-03", gestationalAgeWeeks: 37, gestationalAgeDays: 6, records: [{ id: "seed-yuyu", date: "2026-09-18", lengthHeightCm: 49.5, measurementMethod: "recumbent", weightKg: null, headCircumferenceCm: null, notes: "出生記錄" }] }
   }
 };
 
@@ -34,7 +34,7 @@ function normalizeRecord(record) {
 function inferGestationalAge(dateOfBirth, expectedDateOfConfinement) { if (!/^\d{4}-\d{2}-\d{2}$/.test(dateOfBirth) || !/^\d{4}-\d{2}-\d{2}$/.test(expectedDateOfConfinement)) return null; const birth = new Date(`${dateOfBirth}T00:00:00Z`); const edc = new Date(`${expectedDateOfConfinement}T00:00:00Z`); const daysBeforeDue = Math.round((edc - birth) / 86400000); const gestationalDays = 280 - daysBeforeDue; if (gestationalDays < 0 || gestationalDays > 320) return null; return { weeks: Math.floor(gestationalDays / 7), days: gestationalDays % 7 }; }
 function displayNameFor(id, name) {
   const resolved = String(name || id);
-  return id === "yuyu" && resolved === "榆榆" ? "曦悅" : resolved;
+  return id === "yuyu" && (resolved === "榆榆" || resolved === "曦悅") ? "浠榆" : resolved;
 }
 function normalizeState(value) {
   if (!value || typeof value !== "object" || !value.profiles) throw new Error("備份格式不正確");
