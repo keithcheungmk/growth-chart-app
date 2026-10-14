@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { addRecord, importState, loadState, removeRecord, saveState } from "../js/storage.js";
+import { addRecord, importState, loadState, removeRecord, saveState, updateRecord } from "../js/storage.js";
 
 function useMemoryStorage() {
   const values = new Map();
@@ -83,6 +83,33 @@ test("records require at least one of height or weight and reject out-of-range w
   assert.throws(() => addRecord(state, "kaka", { date: "2026-10-01", measurementMethod: "standing" }), /至少填寫身高或體重/);
   assert.throws(() => addRecord(state, "kaka", { date: "2026-10-01", weightKg: 0.2 }), /體重必須介乎0.5至150公斤/);
   assert.throws(() => addRecord(state, "kaka", { date: "2026-10-01", lengthHeightCm: 20 }), /身高／身長必須介乎35至230厘米/);
+});
+
+test("existing records can be updated while keeping the same id", () => {
+  useMemoryStorage();
+  const state = loadState();
+  const recordId = state.profiles.kaka.records[0].id;
+  updateRecord(state, "kaka", recordId, {
+    date: "2026-10-08",
+    lengthHeightCm: 108,
+    measurementMethod: "standing",
+    weightKg: "18.2",
+    notes: "診所覆核"
+  });
+  saveState(state);
+  const restored = loadState();
+  assert.equal(restored.profiles.kaka.records.length, 1);
+  assert.equal(restored.profiles.kaka.records[0].id, recordId);
+  assert.equal(restored.profiles.kaka.records[0].date, "2026-10-08");
+  assert.equal(restored.profiles.kaka.records[0].lengthHeightCm, 108);
+  assert.equal(restored.profiles.kaka.records[0].weightKg, 18.2);
+  assert.equal(restored.profiles.kaka.records[0].notes, "診所覆核");
+});
+
+test("updating a missing record is rejected", () => {
+  useMemoryStorage();
+  const state = loadState();
+  assert.throws(() => updateRecord(state, "kaka", "missing-id", { date: "2026-10-08", weightKg: 16.8 }), /找不到此記錄/);
 });
 
 test("records can be removed and imported after validation", () => {

@@ -1,12 +1,13 @@
 import { HK2020_HEIGHT } from "../data/hk2020-height.js";
 import { HK2020_WEIGHT } from "../data/hk2020-weight.js";
 import { REFERENCE_INFO, calculateAgeFromDates, calculateGrowth, formatAge, formatPercentile, generateSameCentileTrajectory } from "./growth-engine.js";
-import { loadState, saveState, exportState, importState, addRecord, removeRecord } from "./storage.js";
+import { loadState, saveState, exportState, importState, addRecord, updateRecord, removeRecord } from "./storage.js";
 
 const state = loadState();
 let chart;
 let viewEndMonths = 216;
 let metric = "height";
+let editingRecordId = null;
 const focusedPercentiles = new Set(["p25", "p50", "p75"]);
 const percentileStyles = {
   p25: { label: "P25", color: "#3d93a2" },
@@ -167,23 +168,110 @@ function renderHistoryCollapsible() {
     if (record.weightKg != null) details.append(detailLine("體重", formatMeasurement(record.weightKg, "kg")));
     if (record.headCircumferenceCm != null) details.append(detailLine("頭圍", `${record.headCircumferenceCm} cm`));
     if (record.notes) details.append(detailLine("備註", record.notes));
-    const button = document.createElement("button");
-    button.className = "delete-button";
-    button.type = "button";
-    button.textContent = "刪除此記錄";
-    button.addEventListener("click", (event) => { event.preventDefault(); if (!window.confirm("確定刪除此記錄？")) return; removeRecord(state, state.currentProfileId, record.id); saveState(state); render(); });
-    details.append(button);
+    const actions = document.createElement("div");
+    actions.className = "history-actions";
+    const editButton = document.createElement("button");
+    editButton.className = "edit-button";
+    editButton.type = "button";
+    editButton.textContent = "修改此記錄";
+    editButton.addEventListener("click", (event) => { event.preventDefault(); openEditDialog(record); });
+    const deleteButton = document.createElement("button");
+    deleteButton.className = "delete-button";
+    deleteButton.type = "button";
+    deleteButton.textContent = "刪除此記錄";
+    deleteButton.addEventListener("click", (event) => { event.preventDefault(); if (!window.confirm("確定刪除此記錄？")) return; removeRecord(state, state.currentProfileId, record.id); saveState(state); render(); });
+    actions.append(editButton, deleteButton);
+    details.append(actions);
     item.append(summary, details);
     return item;
   }));
 }
 
-function updateAgePreview() { try { const age = calculateAgeFromDates(profile().dateOfBirth, $("#record-date").value); $("#record-age-preview").textContent = `系統自動記錄年齡：${age.label}`; $("#record-method").value = age.ageMonths < 24 ? "recumbent" : "standing"; $("#form-error").textContent = ""; } catch (error) { $("#record-age-preview").textContent = "系統會按生日自動計算年齡"; $("#form-error").textContent = error.message; } }
-function openDialog() { const dialog = $("#record-dialog"); $("#record-date").value = new Date().toISOString().slice(0, 10); $("#record-height").value = ""; $("#record-weight").value = ""; $("#record-head").value = ""; $("#record-notes").value = ""; $("#form-error").textContent = ""; updateAgePreview(); if (typeof dialog.showModal === "function") dialog.showModal(); else dialog.setAttribute("open", ""); }
-function closeDialog() { const dialog = $("#record-dialog"); if (typeof dialog.close === "function") dialog.close(); else dialog.removeAttribute("open"); }
+function updateAgePreview({ preserveMethod = false } = {}) {
+  try {
+    const age = calculateAgeFromDates(profile().dateOfBirth, $("#record-date").value);
+    $("#record-age-preview").textContent = `系統自動記錄年齡：${age.label}`;
+    if (!preserveMethod) $("#record-method").value = age.ageMonths < 24 ? "recumbent" : "standing";
+    $("#form-error").textContent = "";
+  } catch (error) {
+    $("#record-age-preview").textContent = "系統會按生日自動計算年齡";
+    $("#form-error").textContent = error.message;
+  }
+}
+
+function setDialogMode(mode) {
+  const isEdit = mode === "edit";
+  $("#dialog-eyebrow").textContent = isEdit ? "修改量度" : "新增量度";
+  $("#dialog-title").textContent = isEdit ? "修改記錄" : "記錄量度";
+  $("#record-form button[type='submit']").textContent = isEdit ? "儲存修改" : "儲存記錄";
+}
+
+function showDialog() {
+  const dialog = $("#record-dialog");
+  if (typeof dialog.showModal === "function") dialog.showModal();
+  else dialog.setAttribute("open", "");
+}
+
+function openDialog() {
+  editingRecordId = null;
+  $("#editing-record-id").value = "";
+  setDialogMode("create");
+  $("#record-date").value = new Date().toISOString().slice(0, 10);
+  $("#record-height").value = "";
+  $("#record-weight").value = "";
+  $("#record-head").value = "";
+  $("#record-notes").value = "";
+  $("#form-error").textContent = "";
+  updateAgePreview();
+  showDialog();
+}
+
+function openEditDialog(record) {
+  editingRecordId = record.id;
+  $("#editing-record-id").value = record.id;
+  setDialogMode("edit");
+  $("#record-date").value = record.date;
+  $("#record-height").value = record.lengthHeightCm ?? "";
+  $("#record-weight").value = record.weightKg ?? "";
+  $("#record-head").value = record.headCircumferenceCm ?? "";
+  $("#record-notes").value = record.notes || "";
+  $("#record-method").value = record.measurementMethod === "recumbent" ? "recumbent" : "standing";
+  $("#form-error").textContent = "";
+  updateAgePreview({ preserveMethod: true });
+  showDialog();
+}
+
+function closeDialog() {
+  editingRecordId = null;
+  $("#editing-record-id").value = "";
+  setDialogMode("create");
+  const dialog = $("#record-dialog");
+  if (typeof dialog.close === "function") dialog.close();
+  else dialog.removeAttribute("open");
+}
+
 $("#add-record-button").addEventListener("click", openDialog); $("#cancel-dialog").addEventListener("click", closeDialog); $("#close-dialog").addEventListener("click", closeDialog);
-$("#record-date").addEventListener("change", updateAgePreview);
-$("#record-form").addEventListener("submit", (event) => { event.preventDefault(); try { addRecord(state, state.currentProfileId, { date: $("#record-date").value, lengthHeightCm: $("#record-height").value, measurementMethod: $("#record-method").value, weightKg: $("#record-weight").value, headCircumferenceCm: $("#record-head").value || null, notes: $("#record-notes").value }); saveState(state); closeDialog(); render(); } catch (error) { $("#form-error").textContent = error.message; } });
+$("#record-date").addEventListener("change", () => updateAgePreview());
+$("#record-form").addEventListener("submit", (event) => {
+  event.preventDefault();
+  const payload = {
+    date: $("#record-date").value,
+    lengthHeightCm: $("#record-height").value,
+    measurementMethod: $("#record-method").value,
+    weightKg: $("#record-weight").value,
+    headCircumferenceCm: $("#record-head").value || null,
+    notes: $("#record-notes").value
+  };
+  try {
+    if (editingRecordId) updateRecord(state, state.currentProfileId, editingRecordId, payload);
+    else addRecord(state, state.currentProfileId, payload);
+    saveState(state);
+    closeDialog();
+    render();
+  } catch (error) {
+    $("#form-error").textContent = error.message;
+  }
+});
 document.querySelectorAll(".profile-tab").forEach((button) => button.addEventListener("click", () => { state.currentProfileId = button.dataset.profile; saveState(state); render(); }));
 document.querySelectorAll("[data-range]").forEach((button) => button.addEventListener("click", () => { viewEndMonths = Number(button.dataset.range); render(); }));
 document.querySelectorAll("[data-metric]").forEach((button) => button.addEventListener("click", () => { metric = button.dataset.metric; render(); }));
