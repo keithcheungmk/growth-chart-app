@@ -17,7 +17,7 @@ test("default profiles include the two children and their seeded records", () =>
   assert.equal(state.currentProfileId, "kaka");
   assert.equal(state.profiles.kaka.dateOfBirth, "2022-06-02");
   assert.equal(state.profiles.yuyu.id, "yuyu");
-  assert.equal(state.profiles.yuyu.name, "曦悅");
+  assert.equal(state.profiles.yuyu.name, "浠榆");
   assert.equal(state.profiles.yuyu.expectedDateOfConfinement, "2026-10-03");
   assert.equal(state.profiles.kaka.records[0].lengthHeightCm, 106);
   assert.equal(state.profiles.yuyu.records[0].lengthHeightCm, 49.5);
@@ -43,12 +43,16 @@ test("records persist optional measurements and remain chronologically sorted", 
   assert.equal(restored.profiles.kaka.records[0].notes, "放學後量度");
 });
 
-test("older saved sister display name 榆榆 is renamed to 曦悅 without changing profile id", () => {
+test("older saved sister display names 榆榆 and 曦悅 are renamed to 浠榆 without changing profile id", () => {
   useMemoryStorage();
   localStorage.setItem("HK_GROWTH_DATA_V2", JSON.stringify({ currentProfileId: "yuyu", profiles: { yuyu: { name: "榆榆", sex: "F", dateOfBirth: "2026-09-18", expectedDateOfConfinement: "2026-10-03", records: [] } } }));
-  const state = loadState();
-  assert.equal(state.profiles.yuyu.id, "yuyu");
-  assert.equal(state.profiles.yuyu.name, "曦悅");
+  const fromYuyu = loadState();
+  assert.equal(fromYuyu.profiles.yuyu.id, "yuyu");
+  assert.equal(fromYuyu.profiles.yuyu.name, "浠榆");
+  localStorage.setItem("HK_GROWTH_DATA_V2", JSON.stringify({ currentProfileId: "yuyu", profiles: { yuyu: { name: "曦悅", sex: "F", dateOfBirth: "2026-09-18", expectedDateOfConfinement: "2026-10-03", records: [] } } }));
+  const fromXiyue = loadState();
+  assert.equal(fromXiyue.profiles.yuyu.id, "yuyu");
+  assert.equal(fromXiyue.profiles.yuyu.name, "浠榆");
 });
 
 test("custom sister display names are preserved", () => {
