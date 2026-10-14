@@ -55,9 +55,7 @@ export function saveState(state) { const normalized = normalizeState(state); loc
 export function getStorageKey() { return STORAGE_KEY; }
 export function exportState(state) { const payload = JSON.stringify({ ...state, exportedAt: new Date().toISOString() }, null, 2); const blob = new Blob([payload], { type: "application/json" }); const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = "hk-growth-data-backup.json"; link.click(); URL.revokeObjectURL(url); }
 export function importState(json) { return normalizeState(JSON.parse(json)); }
-export function addRecord(state, profileId, record) {
-  const profile = state.profiles[profileId];
-  if (!profile) throw new Error("找不到兒童檔案");
+function validateRecordFields(profile, record) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(record.date)) throw new Error("請輸入有效日期");
   const today = new Date().toISOString().slice(0, 10);
   if (record.date > today) throw new Error("量度日期不可晚於今天");
@@ -67,12 +65,34 @@ export function addRecord(state, profileId, record) {
   if (height == null && weight == null) throw new Error("請至少填寫身高或體重");
   if (height != null && (!Number.isFinite(height) || height < 35 || height > 230)) throw new Error("身高／身長必須介乎35至230厘米");
   if (weight != null && (!Number.isFinite(weight) || weight < 0.5 || weight > 150)) throw new Error("體重必須介乎0.5至150公斤");
-  profile.records.push(normalizeRecord({
-    ...record,
+  return {
     lengthHeightCm: Number.isFinite(height) ? height : null,
     weightKg: Number.isFinite(weight) ? weight : null
-  }));
+  };
+}
+
+export function addRecord(state, profileId, record) {
+  const profile = state.profiles[profileId];
+  if (!profile) throw new Error("找不到兒童檔案");
+  const validated = validateRecordFields(profile, record);
+  profile.records.push(normalizeRecord({ ...record, ...validated }));
   profile.records.sort((a, b) => a.date.localeCompare(b.date));
   return state;
 }
+
+export function updateRecord(state, profileId, recordId, record) {
+  const profile = state.profiles[profileId];
+  if (!profile) throw new Error("找不到兒童檔案");
+  const index = profile.records.findIndex((entry) => entry.id === recordId);
+  if (index < 0) throw new Error("找不到此記錄");
+  const validated = validateRecordFields(profile, record);
+  profile.records[index] = normalizeRecord({
+    ...record,
+    ...validated,
+    id: recordId
+  });
+  profile.records.sort((a, b) => a.date.localeCompare(b.date));
+  return state;
+}
+
 export function removeRecord(state, profileId, recordId) { const profile = state.profiles[profileId]; if (!profile) return state; profile.records = profile.records.filter((record) => record.id !== recordId); return state; }

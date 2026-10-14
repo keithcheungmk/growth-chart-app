@@ -116,9 +116,10 @@
     <dialog id="record-dialog" class="record-dialog">
       <form id="record-form" method="dialog">
         <div class="section-heading">
-          <div><p class="eyebrow">新增量度</p><h2>記錄量度</h2></div>
+          <div><p class="eyebrow" id="dialog-eyebrow">新增量度</p><h2 id="dialog-title">記錄量度</h2></div>
           <button class="close-button" id="close-dialog" type="button" aria-label="關閉">×</button>
         </div>
+        <input id="editing-record-id" type="hidden" value="" />
         <label>量度日期<input id="record-date" name="date" type="date" required /></label>
         <p id="record-age-preview" class="age-preview" aria-live="polite"></p>
         <label>身高／身長（厘米）<input id="record-height" name="height" type="number" min="35" max="230" step="0.1" /></label>
