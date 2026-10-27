@@ -6,6 +6,7 @@ body { margin:0; background:var(--paper); color:var(--ink); }
 button, input, select, textarea { font:inherit; }
 button { cursor:pointer; }
 button:focus-visible,a:focus-visible,summary:focus-visible { outline:3px solid rgba(23,107,135,.38); outline-offset:2px; }
+summary::marker { content:""; }
 .shell { width:min(100% - 32px, 1160px); margin:0 auto; padding:24px 0 44px; }
 .topbar,.section-heading,.dialog-actions { display:flex; align-items:center; justify-content:space-between; gap:16px; }
 .topbar { margin-bottom:14px; }
