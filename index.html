@@ -21,9 +21,14 @@
           <h1>成長曲線 <span>HK2020</span></h1>
         </div>
         <div class="top-actions">
-          <a class="guest-link" href="./guest.html">Guest 模式</a>
-          <button class="icon-button" id="export-button" type="button" title="匯出備份" aria-label="匯出備份">↓</button>
-          <button class="icon-button" id="import-button" type="button" title="匯入備份" aria-label="匯入備份">↑</button>
+          <details class="more-menu">
+            <summary aria-label="更多選項" title="更多選項">•••</summary>
+            <div class="more-menu-panel">
+              <a href="./guest.html">客人模式</a>
+              <button id="export-button" type="button">匯出備份</button>
+              <button id="import-button" type="button">匯入備份</button>
+            </div>
+          </details>
           <input id="import-input" type="file" accept="application/json" hidden />
         </div>
       </header>
@@ -33,19 +38,6 @@
         <button class="profile-tab" type="button" data-profile="yuyu">浠榆<span>女孩</span></button>
       </section>
       <p class="profile-meta" id="profile-meta"></p>
-
-      <section class="control-row" aria-label="圖表設定">
-        <label class="reference-control">參考標準
-          <select id="reference-select">
-            <option value="HK2020">HK2020 香港參考</option>
-          </select>
-        </label>
-        <div class="range-switcher" role="group" aria-label="圖表年齡範圍">
-          <button type="button" data-range="24">0–2歲</button>
-          <button type="button" data-range="60">0–5歲</button>
-          <button class="active" type="button" data-range="216">0–18歲</button>
-        </div>
-      </section>
 
       <section class="summary-grid" aria-label="最新記錄摘要">
         <article class="summary-card highlight">
@@ -58,12 +50,12 @@
           <strong id="latest-percentile">—</strong>
           <span id="latest-zscore">—</span>
         </article>
-        <article class="summary-card">
-          <p id="adult-reference-label">18歲同百分位參考</p>
-          <strong id="adult-reference">—</strong>
-          <span id="adult-reference-note">按量度時精確年齡投影 · 非醫療預測</span>
-        </article>
       </section>
+      <details class="reference-details">
+        <summary><span id="adult-reference-label">18歲同百分位參考</span><span>展開參考</span></summary>
+        <div><strong id="adult-reference">—</strong><span id="adult-reference-note">按量度時精確年齡投影 · 非醫療預測</span></div>
+      </details>
+      <div class="primary-action-row"><button class="primary-button" id="add-record-button" type="button">＋ 新增量度記錄</button></div>
 
       <section class="chart-card">
         <div class="section-heading">
@@ -72,20 +64,29 @@
             <h2 id="chart-title">沿目前百分位觀察</h2>
           </div>
           <div class="chart-heading-actions">
-            <div class="metric-switcher" role="group" aria-label="圖表指標">
-              <button type="button" data-metric="height" class="active" aria-pressed="true">身高</button>
-              <button type="button" data-metric="weight" aria-pressed="false">體重</button>
+            <div class="chart-control-groups">
+              <div class="metric-switcher" role="group" aria-label="圖表指標">
+                <button type="button" data-metric="height" class="active" aria-pressed="true">身高</button>
+                <button type="button" data-metric="weight" aria-pressed="false">體重</button>
+              </div>
+              <div class="range-switcher" role="group" aria-label="圖表年齡範圍">
+                <button type="button" data-range="24">0–2歲</button>
+                <button type="button" data-range="60">0–5歲</button>
+                <button class="active" type="button" data-range="216">0–18歲</button>
+              </div>
             </div>
             <span class="reference-badge" id="reference-badge">HK2020</span>
           </div>
         </div>
         <div class="chart-toolbar">
-          <span class="focus-label">重點百分位線</span>
-          <div class="percentile-toggle" role="group" aria-label="選擇重點百分位線">
-            <button type="button" data-percentile="p25" aria-pressed="true">P25</button>
-            <button type="button" data-percentile="p50" aria-pressed="true">P50</button>
-            <button type="button" data-percentile="p75" aria-pressed="true">P75</button>
-          </div>
+          <details class="percentile-details">
+            <summary>百分位線 <span id="percentile-summary">P25 · P50 · P75</span></summary>
+            <div class="percentile-toggle" role="group" aria-label="選擇重點百分位線">
+              <button type="button" data-percentile="p25" aria-pressed="true">P25</button>
+              <button type="button" data-percentile="p50" aria-pressed="true">P50</button>
+              <button type="button" data-percentile="p75" aria-pressed="true">P75</button>
+            </div>
+          </details>
           <span class="chart-hint" id="chart-hint">移動或點擊圖表查看厘米值</span>
         </div>
         <div class="chart-wrap"><canvas id="growth-chart" aria-label="兒童身高生長曲線"></canvas></div>
@@ -102,7 +103,6 @@
             <p class="eyebrow">量度記錄</p>
             <h2>歷史資料</h2>
           </div>
-          <button class="primary-button" id="add-record-button" type="button">＋ 新增記錄</button>
         </div>
         <div id="history-list" class="history-list"></div>
       </section>

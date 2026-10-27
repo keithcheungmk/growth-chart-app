@@ -69,10 +69,11 @@ function render() { renderProfileTabs(); renderControls(); renderSummary(); rend
 function formatProfileDate(value) { return new Intl.DateTimeFormat("zh-HK", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" }).format(new Date(`${value}T00:00:00Z`)); }
 function renderProfileTabs() { document.body.dataset.profile = state.currentProfileId; document.querySelectorAll(".profile-tab").forEach((button) => button.classList.toggle("active", button.dataset.profile === state.currentProfileId)); const details = [`生日：${formatProfileDate(profile().dateOfBirth)}`]; if (profile().expectedDateOfConfinement) details.push(`預產期：${formatProfileDate(profile().expectedDateOfConfinement)}`); if (profile().gestationalAgeWeeks != null) details.push(`出生週數：${profile().gestationalAgeWeeks}週${profile().gestationalAgeDays || 0}日`); $("#profile-meta").textContent = details.join(" · "); }
 function renderControls() {
-  $("#reference-select").value = currentReference();
   $("#reference-badge").textContent = REFERENCE_INFO[currentReference()].label;
   document.querySelectorAll("[data-range]").forEach((button) => button.classList.toggle("active", Number(button.dataset.range) === viewEndMonths));
   document.querySelectorAll("[data-percentile]").forEach((button) => button.setAttribute("aria-pressed", String(focusedPercentiles.has(button.dataset.percentile))));
+  const shownPercentiles = ["p25", "p50", "p75"].filter((key) => focusedPercentiles.has(key)).map((key) => key.toUpperCase());
+  $("#percentile-summary").textContent = shownPercentiles.length ? shownPercentiles.join(" · ") : "沒有重點線";
   document.querySelectorAll("[data-metric]").forEach((button) => {
     const selected = button.dataset.metric === metric;
     button.classList.toggle("active", selected);
@@ -275,7 +276,7 @@ $("#record-form").addEventListener("submit", (event) => {
 document.querySelectorAll(".profile-tab").forEach((button) => button.addEventListener("click", () => { state.currentProfileId = button.dataset.profile; saveState(state); render(); }));
 document.querySelectorAll("[data-range]").forEach((button) => button.addEventListener("click", () => { viewEndMonths = Number(button.dataset.range); render(); }));
 document.querySelectorAll("[data-metric]").forEach((button) => button.addEventListener("click", () => { metric = button.dataset.metric; render(); }));
-$("#reference-select").addEventListener("change", (event) => { state.referenceStandard = event.target.value; saveState(state); render(); }); $("#export-button").addEventListener("click", () => exportState(state)); $("#import-button").addEventListener("click", () => $("#import-input").click()); $("#import-input").addEventListener("change", async (event) => { const file = event.target.files?.[0]; if (!file) return; try { const imported = importState(await file.text()); Object.assign(state, imported); saveState(state); render(); window.alert("備份已匯入。"); } catch (error) { window.alert(`匯入失敗：${error.message}`); } event.target.value = ""; });
+$("#export-button").addEventListener("click", () => exportState(state)); $("#import-button").addEventListener("click", () => $("#import-input").click()); $("#import-input").addEventListener("change", async (event) => { const file = event.target.files?.[0]; if (!file) return; try { const imported = importState(await file.text()); Object.assign(state, imported); saveState(state); render(); window.alert("備份已匯入。"); } catch (error) { window.alert(`匯入失敗：${error.message}`); } event.target.value = ""; });
 document.querySelectorAll("[data-percentile]").forEach((button) => button.addEventListener("click", () => { const key = button.dataset.percentile; if (focusedPercentiles.has(key) && focusedPercentiles.size === 1) return; if (focusedPercentiles.has(key)) focusedPercentiles.delete(key); else focusedPercentiles.add(key); render(); }));
 if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(() => {}));
 render();
